@@ -10,4 +10,12 @@ https://start.spring.io/ -  Maven Scafold (describe each dependency we will reve
 https://platform.claude.com/ - Initial Balance, Workspace, API Key
 https://platform.openai.com/ - initial Balance, identity Validation (mandatory if you do not want to use default project, unblocks project management and other functionality on the platform), Project, API Key (disclaimer we gave full access as we will be using this token for almost all use cases in article series it's advised for users to restrict token access to the)
 
-Configure API keys In spring 
+Configure API keys In spring how overrides work (1-2 sentences)
+
+Local Stack: Spring Docker compose 
+
+Plan: explain a bit hexagonal structure as much as we will use here do not overdo it. Main reason is for user to understand the use case of supporting 2 providers at the same time and how hexagonal and spring helps us (very technical, well understood for a beginer dev)
+
+Implementation
+
+Test: Spring Docs and Swagger UI

@@ -2,7 +2,14 @@ spring:
   application:
     name: api
   ai:
+    default: anthropic          # anthropic | openai
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:}
+      chat:
+        model: claude-haiku-4-5
+        max-tokens: 100
     openai:
       api-key: ${OPENAI_API_KEY:}
+      chat:
+        model: gpt-5-nano
+        max-completion-tokens: 512
