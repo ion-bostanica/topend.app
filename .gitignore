@@ -1,2 +1,10 @@
 .claude
 .vscode
+
+# agentic directive files — local only, never committed
+CLAUDE.md
+AGENTS.md
+CODEX.md
+GEMINI.md
+.agents/
+skills-lock.json
