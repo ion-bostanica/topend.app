@@ -1,0 +1,147 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Medium paste — Hands-On AI Dose #2 — Your First AI Tool, and the Agent That Calls It</title>
+<style>
+  body { max-width: 760px; margin: 40px auto; padding: 0 20px;
+         font: 18px/1.65 Georgia, 'Times New Roman', serif; color: #242424; background: #fff; }
+  h1 { font-size: 2.1em; line-height: 1.2; margin: 1.2em 0 .3em; }
+  h2 { font-size: 1.5em; margin: 1.8em 0 .4em; }
+  h3 { font-size: 1.2em; margin: 1.4em 0 .3em; }
+  pre { background: #f2f2f2; padding: 16px 18px; border-radius: 4px; overflow-x: auto;
+         font: 14px/1.5 'SF Mono', Menlo, Consolas, monospace; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em;
+          background: #f2f2f2; padding: 1px 4px; border-radius: 3px; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .82em;
+           font-family: -apple-system, system-ui, sans-serif; }
+  th, td { border: 1px solid #ddd; padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #fafafa; }
+  img { max-width: 100%; height: auto; display: block; margin: 1.4em 0; border: 1px solid #eee; }
+  blockquote { border-left: 3px solid #242424; margin: 1.2em 0; padding-left: 18px;
+                font-style: italic; color: #555; }
+  hr { border: none; border-top: 1px solid #e6e6e6; margin: 2.4em 0; }
+</style></head>
+<body>
+<h1>Hands-On AI Dose #2 — Your First AI Tool, and the Agent That Calls It</h1>
+<p><em>Post a photo of your meal; the model identifies the foods, then calls back into your Spring Boot code to resolve them against the USDA food database.</em></p>
+<img src="https://raw.githubusercontent.com/ion-bostanica/topend.app/main/medium/Hands-On%20AI%20Dose%20%232%20%E2%80%94%20Your%20First%20AI%20Tool%20and%20the%20Agent%20That%20Calls%20It/screens/featured.png" alt="Featured image">
+<hr>
+<p><em>Previous: <a href="https://medium.com/@kemonoske/hands-on-ai-dose-1-two-ai-providers-one-spring-boot-endpoint-98af965ec7fa?sk=bc70994c9dd1d1c6516d139c42b40828">Hands-On AI Dose #1 — Two AI Providers, One Spring Boot Endpoint</a></em></p>
+<h2>The feature</h2>
+<p>Here&#x27;s the product context. TopEnd&#x27;s first feature is <strong>meal logging</strong>. Every nutrition app learns the same lesson: manual entry is where users quit — nobody weighs their kimchi and types four micronutrients into a form. So the API ships a <strong>raw agentic extractor</strong> alongside the manual endpoint: photo in, structured proposal out, human confirms. Raw is the honest word — we&#x27;ll improve it dose by dose, and the numbers at the end of this article show exactly why.</p>
+<p>One thing a photo can&#x27;t give you is trustworthy nutrient data — models happily invent calorie counts. For that we need a <strong>nutrient catalogue</strong>, and USDA&#x27;s FoodData Central is exactly that: the reference database for whole foods, with a free API. The model identifies; FDC supplies the facts.</p>
+<p>Dose #1 (<a href="https://medium.com/@kemonoske/hands-on-ai-dose-1-two-ai-providers-one-spring-boot-endpoint-98af965ec7fa?sk=bc70994c9dd1d1c6516d139c42b40828">backlink</a>) left us with a Spring Boot 4 API talking to Claude or OpenAI behind one config switch. Today the model stops being a chatbot: it gets a <strong>tool</strong> — a method in our codebase it can decide to call.</p>
+<h2>The architecture</h2>
+<p>The request flow:</p>
+<img src="https://mermaid.ink/img/Zmxvd2NoYXJ0IExSCiAgQ2xpZW50WyJjdXJsIC8gU3dhZ2dlciBVSSJdIC0tPnwicGhvdG8gKG11bHRpcGFydCkifCBDWyJOdXRyaXRpb25Db250cm9sbGVyIl0KICBDIC0tPiBTWyJDb25zdW1wdGlvblNlcnZpY2UiXQogIFMgLS0-IFB7eyJWaXNpb25FeHRyYWN0aW9uUG9ydCJ9fQogIFAgLS4tPiBBWyJBbnRocm9waWMgLyBPcGVuQUk8YnIvPkV4dHJhY3Rpb25BZGFwdGVyIl0KICBBIC0tPnwiaW1hZ2UgKyBwcm9tcHQgKyB0b29scyJ8IE1bKCJWaXNpb24gbW9kZWwiKV0KICBNIC0tPnwic2VhcmNoRm9vZCgna2ltY2hpJykifCBUWyJGb29kU2VhcmNoVG9vbCBAVG9vbCJdCiAgVCAtLT4gRlsiRmRjQ2xpZW50Il0KICBGIC0tPiBVWygiVVNEQSBGb29kRGF0YSBDZW50cmFsIildCiAgTSAtLT58IkpTT04gcHJvcG9zYWwifCBBCg==.png?theme=neutral&bgColor=FFFFFF&width=2400" alt="diagram">
+<p>Where that sits in the system — TopEnd talks to three external parties now: two AI providers and one database of record. The mobile app is on the diagram because it&#x27;s the plan, and greyed out because it&#x27;s not the priority:</p>
+<img src="https://raw.githubusercontent.com/ion-bostanica/topend.app/main/medium/Hands-On%20AI%20Dose%20%232%20%E2%80%94%20Your%20First%20AI%20Tool%20and%20the%20Agent%20That%20Calls%20It/screens/c4-context.png" alt="System Context: TopEnd between the user, two AI providers, and USDA FDC">
+<p>Inside the system, one container does the work today. Mongo is drawn dashed for a reason — it&#x27;s <em>planned</em>, and no persistence code exists yet:</p>
+<img src="https://raw.githubusercontent.com/ion-bostanica/topend.app/main/medium/Hands-On%20AI%20Dose%20%232%20%E2%80%94%20Your%20First%20AI%20Tool%20and%20the%20Agent%20That%20Calls%20It/screens/c4-container.png" alt="Containers: the API, planned Mongo, descoped mobile app">
+<p>The data model got designed before it got persisted (DBML in <code>docs/dbml/</code>, ADRs in <code>docs/adr/</code>):</p>
+<img src="https://raw.githubusercontent.com/ion-bostanica/topend.app/main/medium/Hands-On%20AI%20Dose%20%232%20%E2%80%94%20Your%20First%20AI%20Tool%20and%20the%20Agent%20That%20Calls%20It/screens/er-diagram.png" alt="the nutrition data model">
+<p>Three tables. <code>consumptions</code> is the meal event; <code>consumption_items</code> carries macros and their subtypes as columns because you always query them; <code>consumption_item_micros</code> is key-value rows so a new micronutrient never needs a migration. FDC&#x27;s shape leaks in deliberately: items store totals for the consumed quantity converted from FDC&#x27;s per-100g values, micros keep FDC&#x27;s unit names. Until the model earns a database, storage is a <code>ConcurrentHashMap</code> behind the service (ADR-0003).</p>
+<p>Two endpoints come out of this: <code>POST /nutrition/consumptions/extracts</code> (multipart photo → AI proposal) and <code>POST /nutrition/consumptions</code> (JSON → store the confirmed meal). Proposal and confirmation are different resources because FR-NUT-2 is a product rule: AI proposes, the human confirms.</p>
+<h2>Step 1 — Get a free USDA FoodData Central API key</h2>
+<img src="https://raw.githubusercontent.com/ion-bostanica/topend.app/main/medium/Hands-On%20AI%20Dose%20%232%20%E2%80%94%20Your%20First%20AI%20Tool%20and%20the%20Agent%20That%20Calls%20It/screens/fdc-signup.png" alt="FoodData Central API key signup">
+<p>Sign up at https://fdc.nal.usda.gov/api-key-signup — the key arrives by email instantly. Free, 1,000 requests/hour. <code>DEMO_KEY</code> works for a quick poke, but at 30 requests/hour one busy plate exhausts it: our bibimbap alone triggered ~10 tool calls.</p>
+<p>Configured like the AI keys, env var referenced from <code>application.yaml</code>:</p>
+<pre><code class="language-yaml">fdc:
+  api-key: ${FDC_API_KEY:}</code></pre>
+<h2>Step 2 — A thin client for the food API</h2>
+<p>Let&#x27;s start with a test. No third-party mock library needed — Spring&#x27;s own <code>MockRestServiceServer</code> plays USDA:</p>
+<pre><code class="language-java">private final RestClient.Builder builder = RestClient.builder();
+private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+private final FdcClient client = new FdcClient(builder, &quot;https://api.nal.usda.gov/fdc&quot;, &quot;test-api-key&quot;);
+
+@Test
+void searchesFoodsAndMapsResults() {
+    server.expect(requestTo(startsWith(&quot;https://api.nal.usda.gov/fdc/v1/foods/search&quot;)))
+        .andExpect(queryParam(&quot;query&quot;, &quot;apple&quot;))
+        .andExpect(queryParam(&quot;api_key&quot;, &quot;test-api-key&quot;))
+        .andRespond(withSuccess(cannedFdcJson, MediaType.APPLICATION_JSON));
+
+    List&lt;FdcClient.FoodSearchResult&gt; results = client.search(&quot;apple&quot;);
+
+    assertThat(results.getFirst().fdcId()).isEqualTo(1750340L);
+}</code></pre>
+<p>Green comes cheap — <code>FdcClient</code> is ~30 lines of <code>RestClient</code>, and the only part that matters is the call itself:</p>
+<pre><code class="language-java">public List&lt;FoodSearchResult&gt; search(String query) {
+    return restClient.get()
+        .uri(uri -&gt; uri.path(&quot;/v1/foods/search&quot;)
+            .queryParam(&quot;query&quot;, query)
+            .queryParam(&quot;pageSize&quot;, PAGE_SIZE)
+            .queryParam(&quot;api_key&quot;, apiKey)
+            .build())
+        .retrieve()
+        .body(SearchResponse.class)
+        .foods();
+}</code></pre>
+<p>The base URL comes in through the constructor, which is what lets the test above exist at all.</p>
+<h2>Step 3 — Your first AI tool</h2>
+<p>This is the whole trick:</p>
+<pre><code class="language-java">@Component
+public class FoodSearchTool {
+
+    private final FdcClient fdcClient;
+
+    @Tool(description = &quot;Search USDA FoodData Central for a food by name. Returns candidate foods with &quot;
+            + &quot;their FDC id and nutrient values per 100 g/ml (energy KCAL, protein, fat, carbs, micronutrients).&quot;)
+    public List&lt;FdcClient.FoodSearchResult&gt; searchFood(
+            @ToolParam(description = &quot;Plain food name, e.g. &#x27;red apple&#x27; or &#x27;grilled chicken breast&#x27;&quot;) String query) {
+        return fdcClient.search(query);
+    }
+}</code></pre>
+<p>Three things worth staring at:</p>
+<ol><li><strong>The description is the API.</strong> The model never sees your code — it sees the description and the parameter schema. Write them for the model, not for your teammates. Ours states the units (<code>per 100 g/ml</code>) because the model has to do portion math with the results.</li><li><strong>Spring AI translates this once per provider.</strong> The same <code>@Tool</code> becomes an Anthropic <code>tools</code> entry and an OpenAI function definition. Register once, both providers can call it.</li><li><strong>It returns your domain objects.</strong> Spring AI serializes the result back to the model as JSON. No manual marshalling.</li></ol>
+<h2>Step 4 — The agent: image in, tool calls in the middle, JSON out</h2>
+<p>The prompt is what turns a vision model into an agent — it doesn&#x27;t ask for a description, it tells the model to <em>use the tool for every item it sees</em>, and to do the portion math on what comes back. It lives on the port, so both providers get the exact same instructions:</p>
+<pre><code class="language-java">String EXTRACTION_PROMPT = &quot;&quot;&quot;
+    You are a nutrition extraction agent. Look at the meal photo and:
+    1. Identify every distinct food and drink on it, estimating consumed quantity
+       (g for solids, ml for liquids).
+    2. For EACH identified food, call the searchFood tool to resolve it against USDA
+       FoodData Central; pick the best-matching candidate and use its fdcId.
+       If nothing matches, leave fdcId null.
+    3. Compute nutrient totals for the estimated quantity: FDC values are per 100 g/ml,
+       so total = value_per_100 * quantity / 100. Fill kcal, macros (fat with
+       saturated/mono/poly, carbs with sugars/fiber/starch, protein) and key
+       micronutrients with their FDC unit.
+    4. Set a 0..1 confidence per item and overall.&quot;&quot;&quot;;</code></pre>
+<p>The extraction adapter mirrors Dose #1&#x27;s pattern — one adapter per provider, selected by <code>spring.ai.default</code>:</p>
+<pre><code class="language-java">@Override
+public Mono&lt;ConsumptionProposal&gt; extract(byte[] image, String mimeType) {
+    return Mono.fromCallable(() -&gt; chatClient.prompt()
+        .user(u -&gt; u.text(EXTRACTION_PROMPT)
+            .media(MimeTypeUtils.parseMimeType(mimeType), new ByteArrayResource(image)))
+        .tools(foodSearchTool)
+        .call()
+        .entity(ConsumptionProposal.class, params -&gt; params.useProviderStructuredOutput()))
+        .subscribeOn(Schedulers.boundedElastic());
+}</code></pre>
+<p>Three Spring AI features stack in one call chain:</p>
+<ul><li><strong>Multimodal input</strong> — <code>media(...)</code> attaches the photo bytes.</li><li><strong>Tool calling</strong> — <code>tools(foodSearchTool)</code> hands the model our tool.</li><li><strong>Structured output</strong> — <code>entity(ConsumptionProposal.class, params -&gt; params.useProviderStructuredOutput())</code> derives a JSON schema from a Java record and — the part that matters — sends it <strong>natively</strong>: Anthropic&#x27;s <a href="https://platform.claude.com/docs/en/build-with-claude/structured-outputs">structured outputs</a> and OpenAI&#x27;s <a href="https://developers.openai.com/api/docs/guides/structured-outputs">structured outputs</a> enforce the schema server-side, so the reply <em>is</em> the record. Without that flag Spring AI falls back to pasting the schema into the prompt and hoping — we tried that first; Claude opened its answer with &quot;Based on the photo…&quot; and broke the parser.</li></ul>
+<h3>Who runs the agentic loop?</h3>
+<p>When the model wants the tool, the API doesn&#x27;t return an answer — it returns a request to call it (Anthropic: <code>stop_reason: &quot;tool_use&quot;</code>; OpenAI: <code>finish_reason: &quot;tool_calls&quot;</code>). Someone must execute the tool, append the result to the conversation, and send everything back, repeatedly, until the model finishes normally (<code>end_turn</code> / <code>stop</code>). That cycle is the <strong>agentic loop</strong>:</p>
+<img src="https://mermaid.ink/img/c2VxdWVuY2VEaWFncmFtCiAgcGFydGljaXBhbnQgQXBwIGFzIFNwcmluZyBBSSAoaW4tcHJvY2VzcyBsb29wKQogIHBhcnRpY2lwYW50IExMTSBhcyBWaXNpb24gbW9kZWwKICBwYXJ0aWNpcGFudCBUb29sIGFzIEZvb2RTZWFyY2hUb29sCiAgQXBwLT4-TExNOiBwcm9tcHQgKyBwaG90byArIHRvb2wgZGVmaW5pdGlvbnMKICBMTE0tLT4-QXBwOiB3YW50cyBhIHRvb2wg4oCUIHNlYXJjaEZvb2QoImtpbWNoaSIpCiAgQXBwLT4-VG9vbDogc2VhcmNoRm9vZCgia2ltY2hpIikKICBUb29sLS0-PkFwcDogY2FuZGlkYXRlcyB3aXRoIGZkY0lkICsgcGVyLTEwMGcgbnV0cmllbnRzCiAgQXBwLT4-TExNOiB0b29sIHJlc3VsdCBhcHBlbmRlZCB0byBoaXN0b3J5CiAgTExNLS0-PkFwcDogZG9uZSDigJQgSlNPTiBwcm9wb3NhbAo=.png?theme=neutral&bgColor=FFFFFF&width=1600" alt="diagram">
+<p>Spring AI implements this whole mechanism and runs it inside <code>call()</code> — the dispatch, the history bookkeeping, the termination check. We&#x27;re deliberately not opening that box today; it deserves its own dose. If you want the raw-API version, <a href="https://claudecertificationguide.com/learn/1-agentic-architecture/1-1-agentic-loops">the certification guide&#x27;s agentic-loops chapter</a> walks through why <code>stop_reason</code> is the only correct termination signal. And when you need manual control — human approval per tool call, streaming progress — <code>internalToolExecutionEnabled(false)</code> hands you the loop.</p>
+<h2>Step 5 — Watch it work</h2>
+<img src="https://raw.githubusercontent.com/ion-bostanica/topend.app/main/medium/Hands-On%20AI%20Dose%20%232%20%E2%80%94%20Your%20First%20AI%20Tool%20and%20the%20Agent%20That%20Calls%20It/screens/swagger.png" alt="the two endpoints in Swagger UI">
+<p>Debug logging (<code>logging.level.org.springframework.ai=DEBUG</code>) makes the loop visible — the model resolving a bibimbap bowl, one <code>searchFood</code> call per ingredient:</p>
+<img src="https://raw.githubusercontent.com/ion-bostanica/topend.app/main/medium/Hands-On%20AI%20Dose%20%232%20%E2%80%94%20Your%20First%20AI%20Tool%20and%20the%20Agent%20That%20Calls%20It/screens/tool-call-logs.png" alt="the model calling searchFood repeatedly, from the app logs">
+<p>The repo pins two human-classified photos from Wikimedia Commons as fixtures, and an opt-in integration test (<code>ExtractionAgentIT</code>) runs the real loop against them on both providers — red→green applies to agents too.</p>
+<p>The test run also produced the most instructive non-result of the day. The plate had Korean fernbrake (gosari) on it; FDC doesn&#x27;t have it. The model returned <code>fdcId=null, kcal=0, confidence=0.4</code> for that item and moved on. No invented numbers — the prompt allows &quot;not found&quot;, and the human-confirmation step exists exactly for this case.</p>
+<h2>What did today cost?</h2>
+<p>The meter reading for one day of building and debugging this:</p>
+<pre><code>Provider                      Tokens                     ≈ Cost
+OpenAI (gpt-5-mini)           1,665,728 across 31 calls  ~$0.36
+Anthropic (claude-haiku-4-5)  392,868 in / 12,756 out    ~$0.45</code></pre>
+<p>Eighty-one cents sounds harmless until you do the per-photo math: <strong>one meal photo costs ~150–250k tokens</strong>. The agentic loop replays the entire conversation on every tool round — image, prompt, and every previous tool result get re-billed on each of the ~11 requests a busy plate triggers. Our <code>searchFood</code> result makes it worse: 5 candidates × full FDC nutrient arrays, thousands of tokens, re-read every round. On a frontier-class model this exact design would cost dollars per photo.</p>
+<p>To be explicit about what today&#x27;s code is: <strong>we built the fastest, dirtiest version that works and did not optimize anything.</strong> That&#x27;s a statement of sequencing, not an apology — you can&#x27;t optimize a loop you haven&#x27;t watched run. Making it cheap is its own story, with its own instrument panel.</p>
+<h2>Things to consider</h2>
+<ul><li><strong>Reasoning models are token hungry.</strong> They spend output tokens on thinking you never see. <code>gpt-5-nano</code> with a 2,048-token budget returned literally nothing — the budget went to reasoning, none was left for the answer. Budget 8k+ for structured extraction, and check the <code>finish_reason</code> before trusting an empty reply.</li><li><strong>Use native structured outputs, not prompt-and-pray.</strong> Both <a href="https://platform.claude.com/docs/en/build-with-claude/structured-outputs">Claude</a> and <a href="https://developers.openai.com/api/docs/guides/structured-outputs">OpenAI</a> enforce a JSON schema server-side. Our first version parsed prose-wrapped JSON with string slicing; the native flag deleted that code entirely.</li><li><strong>Strict schemas forbid open maps.</strong> Native structured output only works if the schema is <em>closed</em>: every key the model may emit has to be named up front. A <code>Map&lt;String, Double&gt;</code> is the opposite — its keys are invented at runtime (<code>&quot;iron&quot;</code>, <code>&quot;vitaminC&quot;</code>, whatever the model picks), so there is nothing to name, and both providers reject the schema outright. The fix is to stop using the key as data: instead of <code>{&quot;iron&quot;: 1.8}</code>, emit <code>[{&quot;nutrientKey&quot;: &quot;iron&quot;, &quot;amount&quot;: 1.8, &quot;unit&quot;: &quot;mg&quot;}]</code> — a fixed shape repeated N times. Same information, and now every field has a name the schema can pin down.</li><li><strong>A busy plate is a long turn.</strong> Ten ingredients means ten sequential tool rounds; our first run blew past the HTTP client&#x27;s read timeout. <code>spring.ai.openai.chat.timeout: 10m</code>.</li><li><strong>Bound your uploads.</strong> WebFlux&#x27;s 256KB multipart default rejects any real photo, and raising it naively invites unbounded buffering. We cap the in-memory join at 10MB and return <code>413</code> past it — the providers reject bigger images anyway.</li></ul>
+<p>Those last two are load-bearing questions in disguise: a ten-minute timeout on a request-response endpoint and a whole photo buffered in memory are both things a real deployment would answer with async handling and streaming instead. Not today — today the loop just has to run.</p>
+<h2>Code</h2>
+<p>Everything is tagged: <a href="https://github.com/ion-bostanica/topend.app/tree/0.2.0">github.com/…/topend-app @ 0.2.0</a></p>
+<h2>Next</h2>
+<p>Dose #1 wired two providers into one endpoint (<a href="https://medium.com/@kemonoske/hands-on-ai-dose-1-two-ai-providers-one-spring-boot-endpoint-98af965ec7fa?sk=bc70994c9dd1d1c6516d139c42b40828">read it here</a>); today they both learned to call our code. Dose #3 puts the agent on a scale: <strong>Micrometer</strong> metrics on every model call, so &quot;tokens per photo&quot; becomes a number on a dashboard — then we cut the bill lever by lever (slim tool results, batched lookups, math out of the model, prompt caching) with before/after receipts. Target: the same bibimbap for under a cent.</p>
+</body></html>
