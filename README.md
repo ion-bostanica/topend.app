@@ -6,6 +6,15 @@ write-up of what was learned building it.
 The API is a Spring Boot (WebFlux) service that talks to **both Claude and OpenAI** through
 separate connectors, switchable by config.
 
+Current features:
+
+- `POST /hello` — dual-provider chat hello world (article #1)
+- `POST /nutrition/consumptions/extracts` (multipart photo) — an AI agent identifies the foods on a
+  meal photo and resolves them against **USDA FoodData Central** via a tool the model calls,
+  returning a structured nutrient breakdown (article #2)
+- `POST /nutrition/consumptions` (JSON) — stores a confirmed consumption (in-memory for now;
+  the data model lives in `docs/dbml/`)
+
 ## Project structure
 
 ```
@@ -16,8 +25,11 @@ topend.app/
 │   ├── config/
 │   │   └── application.yaml.example        # local config template — copy and fill in
 │   └── src/main/resources/application.yaml # committed defaults
-├── docs/                                   # functional spec, ADRs, C4 (Structurizr DSL),
-│                                           # data model (DBML)
+├── docs/
+│   ├── adr/                                # architecture decision records
+│   ├── dbml/                               # data model (DBML)
+│   ├── structurizr/                        # C4 model (Structurizr DSL)
+│   └── FUNCTIONAL_SPEC.md
 └── medium/                                 # article drafts and publishing assets
 ```
 
@@ -29,6 +41,8 @@ that article.
 - JDK 26 (`java.version` in `api/pom.xml`)
 - Docker
 - An Anthropic and/or OpenAI API key
+- A (free) USDA FoodData Central API key — <https://fdc.nal.usda.gov/api-key-signup> —
+  for the nutrition endpoints
 
 ## Run locally
 
@@ -49,9 +63,13 @@ spring:
       api-key: <your Anthropic key>
     openai:
       api-key: <your OpenAI key>
+
+fdc:
+  api-key: <your FoodData Central key>
 ```
 
-Only the key for the provider named in `default` has to be set. `api/config/` is
+Only the key for the provider named in `default` has to be set (plus the FDC key if you
+use the nutrition endpoints). `api/config/` is
 gitignored — real keys never leave your machine. Spring Boot loads this file over the
 committed defaults in `src/main/resources/application.yaml`.
 

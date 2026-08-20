@@ -1,0 +1,24 @@
+2026-08-19T17:45:18.053+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.a.m.tool.DefaultToolCallingManager   : Executing tool call: searchFood
+2026-08-19T17:45:18.054+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Starting execution of tool: searchFood
+2026-08-19T17:45:19.618+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Successful execution of tool: searchFood
+2026-08-19T17:45:30.157+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.a.m.tool.DefaultToolCallingManager   : Executing tool call: searchFood
+2026-08-19T17:45:30.157+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Starting execution of tool: searchFood
+2026-08-19T17:45:30.622+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Successful execution of tool: searchFood
+2026-08-19T17:45:30.625+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.a.m.tool.DefaultToolCallingManager   : Executing tool call: searchFood
+2026-08-19T17:45:30.625+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Starting execution of tool: searchFood
+2026-08-19T17:45:31.004+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Successful execution of tool: searchFood
+2026-08-19T17:45:31.005+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.a.m.tool.DefaultToolCallingManager   : Executing tool call: searchFood
+2026-08-19T17:45:31.005+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Starting execution of tool: searchFood
+2026-08-19T17:45:31.474+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Successful execution of tool: searchFood
+2026-08-19T17:45:31.476+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.a.m.tool.DefaultToolCallingManager   : Executing tool call: searchFood
+2026-08-19T17:45:31.476+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Starting execution of tool: searchFood
+2026-08-19T17:45:32.076+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Successful execution of tool: searchFood
+2026-08-19T17:45:32.078+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.a.m.tool.DefaultToolCallingManager   : Executing tool call: searchFood
+2026-08-19T17:45:32.078+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Starting execution of tool: searchFood
+2026-08-19T17:45:32.637+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Successful execution of tool: searchFood
+2026-08-19T17:45:32.638+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.a.m.tool.DefaultToolCallingManager   : Executing tool call: searchFood
+2026-08-19T17:45:32.638+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Starting execution of tool: searchFood
+2026-08-19T17:45:33.031+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Successful execution of tool: searchFood
+2026-08-19T17:45:33.032+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.a.m.tool.DefaultToolCallingManager   : Executing tool call: searchFood
+2026-08-19T17:45:33.032+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Starting execution of tool: searchFood
+2026-08-19T17:45:33.576+03:00 DEBUG 99259 --- [api] [oundedElastic-1] o.s.ai.tool.method.MethodToolCallback    : Successful execution of tool: searchFood
