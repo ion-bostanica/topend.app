@@ -1,0 +1,27 @@
+{
+  "totalHits": 2,
+  "currentPage": 1,
+  "totalPages": 1,
+  "foods": [
+    {
+      "fdcId": 1750340,
+      "description": "Apples, red delicious, with skin, raw",
+      "dataType": "Foundation",
+      "foodNutrients": [
+        { "nutrientId": 1008, "nutrientName": "Energy", "unitName": "KCAL", "value": 59.0 },
+        { "nutrientId": 1003, "nutrientName": "Protein", "unitName": "G", "value": 0.19 },
+        { "nutrientId": 1004, "nutrientName": "Total lipid (fat)", "unitName": "G", "value": 0.15 },
+        { "nutrientId": 1005, "nutrientName": "Carbohydrate, by difference", "unitName": "G", "value": 14.8 },
+        { "nutrientId": 1089, "nutrientName": "Iron, Fe", "unitName": "MG", "value": 0.02 }
+      ]
+    },
+    {
+      "fdcId": 2344711,
+      "description": "Apple, raw",
+      "dataType": "Survey (FNDDS)",
+      "foodNutrients": [
+        { "nutrientId": 1008, "nutrientName": "Energy", "unitName": "KCAL", "value": 61.0 }
+      ]
+    }
+  ]
+}

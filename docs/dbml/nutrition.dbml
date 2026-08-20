@@ -1,0 +1,48 @@
+// TopEnd — Nutrition domain data model (Article #2)
+// Canonical source. ER diagram rendered via dbdiagram.io.
+// Persistence is not implemented yet (in-memory store) — see ADR-0003.
+
+Table consumptions {
+  id uuid [pk]
+  consumed_at timestamptz [not null]
+  source varchar [not null, note: 'photo | manual']
+  photo_ref varchar [null, note: 'storage ref of the original photo']
+  confidence decimal [null, note: 'overall AI proposal confidence 0..1']
+  confirmed_by varchar [null, note: 'FR-NUT-2: human confirm loop; null = unconfirmed proposal']
+  created_at timestamptz [not null]
+}
+
+// Nutrient amounts below are TOTALS for the consumed quantity.
+// FDC expresses nutrients per 100 g/ml — the extractor converts: total = value_per_100 * quantity / 100.
+Table consumption_items {
+  id uuid [pk]
+  consumption_id uuid [not null, ref: > consumptions.id]
+  fdc_id bigint [null, note: 'USDA FoodData Central fdcId; null when unresolved or custom food (FR-NUT-3)']
+  name varchar [not null]
+  quantity decimal [not null]
+  unit varchar [not null, note: 'g | ml']
+  is_liquid boolean [not null]
+  kcal decimal [not null]
+  protein_g decimal [not null]
+  fat_total_g decimal [not null]
+  fat_saturated_g decimal
+  fat_mono_g decimal
+  fat_poly_g decimal
+  carbs_total_g decimal [not null]
+  sugars_g decimal
+  fiber_g decimal
+  starch_g decimal
+  confidence decimal [note: 'per-item AI confidence 0..1']
+}
+
+Table consumption_item_micros {
+  item_id uuid [ref: > consumption_items.id]
+  nutrient_key varchar [note: 'stable slug, e.g. iron, vitamin_c']
+  fdc_nutrient_id bigint [null, note: 'FDC nutrientId, e.g. 1089 = Iron; null for custom foods']
+  amount decimal [not null, note: 'total for the consumed quantity (converted from FDC per-100g basis)']
+  unit varchar [not null, note: 'FDC unitName: MG | UG | IU']
+
+  indexes {
+    (item_id, nutrient_key) [pk]
+  }
+}

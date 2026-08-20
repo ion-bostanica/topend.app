@@ -1,15 +1,24 @@
 spring:
   application:
     name: api
+  webflux:
+    multipart:
+      max-in-memory-size: 10MB       # meal photos; WebFlux default 256KB is too small
+      max-disk-usage-per-part: 0     # no disk spill: parts over 10MB are rejected (413), not buffered unbounded
+      max-parts: 2
   ai:
     default: anthropic          # anthropic | openai
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:}
       chat:
         model: claude-haiku-4-5
-        max-tokens: 100
+        max-tokens: 8192
     openai:
       api-key: ${OPENAI_API_KEY:}
       chat:
-        model: gpt-5-nano
-        max-completion-tokens: 512
+        model: gpt-5-mini
+        timeout: 10m           # a busy plate = a long tool-calling turn
+        max-completion-tokens: 16384
+
+fdc:
+  api-key: ${FDC_API_KEY:}       # https://fdc.nal.usda.gov/api-key-signup
